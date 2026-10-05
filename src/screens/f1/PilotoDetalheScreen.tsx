@@ -8,34 +8,66 @@ import Tabs from '../../components/Tabs';
 import Avatar from '../../components/Avatar';
 import { drivers, driverProfile as fallbackProfile } from '../../services/mock';
 import { DriverDetail, getDriverDetail } from '../../services/jolpica';
+import { getOpenF1Drivers, OpenF1DriverProfile } from '../../services/openf1';
+
+const normalizeName = (value: string) => value
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase()
+  .replace(/[^a-z0-9 ]/g, '')
+  .trim();
 
 export default function PilotoDetalheScreen() {
   const { params } = useRoute<any>();
-  const driver = drivers.find((d) => d.id === params?.id) ?? drivers[3];
+  const routeId = String(params?.id ?? '');
+  const selectedDriver = drivers.find((d) => d.id === routeId);
   const [detail, setDetail] = useState<DriverDetail | null>(null);
+  const [openF1Driver, setOpenF1Driver] = useState<OpenF1DriverProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('Temporada 2026');
+  const [headshotUrl, setHeadshotUrl] = useState<string>();
 
   useEffect(() => {
-    getDriverDetail(params?.id ?? driver.id)
-      .then(setDetail)
-      .catch(() => setDetail(null))
-      .finally(() => setLoading(false));
-  }, [params?.id, driver.id]);
+    if (routeId.startsWith('openf1-')) {
+      setDetail(null);
+      setLoading(false);
+    } else {
+      getDriverDetail(routeId)
+        .then(setDetail)
+        .catch(() => setDetail(null))
+        .finally(() => setLoading(false));
+    }
+    getOpenF1Drivers()
+      .then((openF1Drivers) => {
+        const selectedNumber = routeId.startsWith('openf1-') ? routeId.replace('openf1-', '') : '';
+        const normalizedName = normalizeName(selectedDriver?.name ?? routeId.replace(/_/g, ' '));
+        const selectedParts = normalizedName.split(' ');
+        const match = openF1Drivers.find((item) => (
+          selectedNumber
+            ? String(item.number) === selectedNumber
+            : normalizeName(item.name) === normalizedName
+              || normalizeName(item.name).split(' ').slice(-1)[0] === selectedParts.slice(-1)[0]
+        ));
+        setOpenF1Driver(match ?? null);
+        setHeadshotUrl(match?.headshotUrl);
+      })
+      .catch(() => setHeadshotUrl(undefined));
+  }, [routeId, selectedDriver?.id]);
 
   const stats = tab === 'Carreira' ? detail?.career ?? fallbackProfile.career : detail?.season ?? fallbackProfile.season;
   const lastRaces = detail?.lastRaces ?? fallbackProfile.lastRaces;
   const teams = detail?.teams ?? fallbackProfile.teams;
-  const currentTeam = detail?.team ?? driver.team;
+  const displayName = openF1Driver?.name ?? detail?.name ?? selectedDriver?.name ?? routeId;
+  const currentTeam = openF1Driver?.team ?? detail?.team ?? selectedDriver?.team ?? 'Equipe não informada';
   const visibleTeams = tab === 'Carreira' ? teams : [{ name: currentTeam, years: 'Temporada atual' }];
 
   return (
     <Screen title="Piloto">
       <View style={s.hero}>
-        <Avatar label={driver.name} size={84} />
+        <Avatar label={displayName} size={84} source={headshotUrl ? { uri: headshotUrl } : undefined} />
         <View style={{ flex: 1 }}>
-          <Text style={s.name}>{detail?.name ?? driver.name}</Text>
-          <Text style={s.muted}>{detail?.team ?? driver.team}</Text>
+          <Text style={s.name}>{displayName}</Text>
+          <Text style={s.muted}>{currentTeam}</Text>
           <Text style={s.muted}>{detail?.nationality ?? fallbackProfile.nationality}  ·  {detail?.birth ?? fallbackProfile.birth}</Text>
         </View>
         <Ionicons name="heart-outline" size={20} color={colors.text} />

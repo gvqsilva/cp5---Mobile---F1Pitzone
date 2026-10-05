@@ -10,6 +10,10 @@ export default function NoticiasScreen() {
   const items = newsList.filter((n) => n.kind === tab);
   return (
     <Screen title="Notícias">
+      <View style={s.intro}>
+        <Text style={s.heading}>Últimas da F1</Text>
+        <Text style={s.hint}>Confira os destaques e atualizações da temporada.</Text>
+      </View>
       <Tabs tabs={['Destaques', 'Recentes', 'Vídeos']} value={tab} onChange={setTab} />
       {items.length === 0 && <Text style={s.empty}>Sem itens por enquanto.</Text>}
       {items.map((n) =>
@@ -31,7 +35,10 @@ export default function NoticiasScreen() {
 }
 
 const s = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.md, padding: 10 },
+  intro: { backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: 15, gap: 3 },
+  heading: { color: colors.text, fontSize: 18, fontWeight: '900' },
+  hint: { color: colors.textMuted, fontSize: 11 },
+  card: { backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: 12 },
   hero: { height: 130, borderRadius: radius.md, backgroundColor: colors.surfaceAlt, marginBottom: 8, padding: 8 },
   tag: { color: colors.text, backgroundColor: colors.red, alignSelf: 'flex-start', fontSize: 9, fontWeight: '800', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
   thumb: { width: 84, height: 60, borderRadius: radius.sm, backgroundColor: colors.surfaceAlt },

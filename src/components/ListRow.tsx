@@ -18,7 +18,7 @@ export default function ListRow({ left, title, sub, right, onPress, active, disa
 }
 
 const s = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: 20, backgroundColor: colors.surface, borderRadius: radius.md, padding: 20, minHeight: 112 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 16, backgroundColor: colors.surface, borderRadius: radius.md, padding: 16, minHeight: 112 },
   active: { backgroundColor: '#5E1A1F', borderWidth: 1, borderColor: colors.red },
   title: { color: colors.text, fontSize: 15, fontWeight: '700' },
   sub: { color: colors.textMuted, fontSize: 12, marginTop: 4 },

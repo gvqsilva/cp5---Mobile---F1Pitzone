@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme';
+import { getAuthSession } from '../services/storage';
 import OnboardingScreen from '../screens/onboarding/OnboardingScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
@@ -13,26 +14,41 @@ import PlaceholderScreen from '../screens/placeholder/PlaceholderScreen';
 import F1HomeScreen from '../screens/f1/F1HomeScreen';
 import CalendarioScreen from '../screens/f1/CalendarioScreen';
 import SessoesScreen from '../screens/f1/SessoesScreen';
+import SessaoResultadoScreen from '../screens/f1/SessaoResultadoScreen';
 import PilotosScreen from '../screens/f1/PilotosScreen';
 import EquipesScreen from '../screens/f1/EquipesScreen';
+import EquipeDetalheScreen from '../screens/f1/EquipeDetalheScreen';
 import NoticiasScreen from '../screens/f1/NoticiasScreen';
 import PilotoDetalheScreen from '../screens/f1/PilotoDetalheScreen';
 import FantasyHomeScreen from '../screens/fantasy/FantasyHomeScreen';
 import MinhaEquipeScreen from '../screens/fantasy/MinhaEquipeScreen';
 import PontuacaoScreen from '../screens/fantasy/PontuacaoScreen';
 import CriarEquipeScreen from '../screens/fantasy/CriarEquipeScreen';
-import { getAuthSession } from '../services/storage';
+import PerfilScreen from '../screens/perfil/PerfilScreen';
+import LigasScreen from '../screens/perfil/LigasScreen';
+import LigaDetalheScreen from '../screens/perfil/LigaDetalheScreen';
+import HistoricoPontosScreen from '../screens/perfil/HistoricoPontosScreen';
 
 export type RootStackParamList = {
   Onboarding: undefined; Login: undefined; Register: undefined; Main: undefined;
   MinhaEquipe: undefined; Pontuacao: undefined; CriarEquipe: undefined;
-  Calendario: undefined; Sessoes: { raceId: string }; Pilotos: undefined; Equipes: undefined; Noticias: undefined; PilotoDetalhe: { id: string };
+  Calendario: undefined; Sessoes: { raceId: string }; SessaoResultado: { sessionKey: number; sessionName: string }; Pilotos: undefined; Equipes: undefined; EquipeDetalhe: { id: string }; Noticias: undefined; PilotoDetalhe: { id: string };
+  Ligas: undefined; LigaDetalhe: { id: string }; HistoricoPontos: undefined;
+  Configuracoes: undefined; Conquistas: undefined; MinhasCompras: undefined; AjudaSuporte: undefined; GerenciarAssinatura: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-const Tab = createBottomTabNavigator();
+type MainTabParamList = {
+  Home: undefined;
+  F1: undefined;
+  Fantasy: undefined;
+  Loja: undefined;
+  Perfil: undefined;
+};
 
-const ICONS: Record<string, [keyof typeof Ionicons.glyphMap, keyof typeof Ionicons.glyphMap]> = {
+const Tab = createBottomTabNavigator<MainTabParamList>();
+
+const ICONS: Record<keyof MainTabParamList, [keyof typeof Ionicons.glyphMap, keyof typeof Ionicons.glyphMap]> = {
   Home: ['home', 'home-outline'],
   F1: ['flag', 'flag-outline'],
   Fantasy: ['game-controller', 'game-controller-outline'],
@@ -59,7 +75,7 @@ function MainTabs() {
       <Tab.Screen name="F1" component={F1HomeScreen} />
       <Tab.Screen name="Fantasy" component={FantasyHomeScreen} />
       <Tab.Screen name="Loja" component={placeholder('Loja')} />
-      <Tab.Screen name="Perfil" component={placeholder('Perfil')} />
+      <Tab.Screen name="Perfil" component={PerfilScreen} />
     </Tab.Navigator>
   );
 }
@@ -68,11 +84,17 @@ export default function Navigation() {
   const [initialRoute, setInitialRoute] = useState<'Onboarding' | 'Main' | null>(null);
 
   useEffect(() => {
-    getAuthSession().then((session) => setInitialRoute(session ? 'Main' : 'Onboarding'));
+    getAuthSession()
+      .then((session) => setInitialRoute(session?.remember ? 'Main' : 'Onboarding'))
+      .catch(() => setInitialRoute('Onboarding'));
   }, []);
 
   if (!initialRoute) {
-    return <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={colors.red} /></View>;
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator color={colors.red} />
+      </View>
+    );
   }
 
   return (
@@ -87,10 +109,20 @@ export default function Navigation() {
         <Stack.Screen name="CriarEquipe" component={CriarEquipeScreen} />
         <Stack.Screen name="Calendario" component={CalendarioScreen} />
         <Stack.Screen name="Sessoes" component={SessoesScreen} />
+        <Stack.Screen name="SessaoResultado" component={SessaoResultadoScreen} />
         <Stack.Screen name="Pilotos" component={PilotosScreen} />
         <Stack.Screen name="Equipes" component={EquipesScreen} />
+        <Stack.Screen name="EquipeDetalhe" component={EquipeDetalheScreen} />
         <Stack.Screen name="Noticias" component={NoticiasScreen} />
         <Stack.Screen name="PilotoDetalhe" component={PilotoDetalheScreen} />
+        <Stack.Screen name="Ligas" component={LigasScreen} />
+        <Stack.Screen name="LigaDetalhe" component={LigaDetalheScreen} />
+        <Stack.Screen name="HistoricoPontos" component={HistoricoPontosScreen} />
+        <Stack.Screen name="Configuracoes" component={placeholder('Configurações')} />
+        <Stack.Screen name="Conquistas" component={placeholder('Conquistas')} />
+        <Stack.Screen name="MinhasCompras" component={placeholder('Minhas Compras')} />
+        <Stack.Screen name="AjudaSuporte" component={placeholder('Ajuda & Suporte')} />
+        <Stack.Screen name="GerenciarAssinatura" component={placeholder('Gerenciar assinatura')} />
       </Stack.Navigator>
     </NavigationContainer>
   );

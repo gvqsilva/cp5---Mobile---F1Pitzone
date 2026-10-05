@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, ImageBackground } from 'react-native';
 import { colors, radius } from '../theme';
 import useCountdown from '../hooks/useCountdown';
 import { nextRace } from '../services/mock';
 import { CalendarRace, getCalendar } from '../services/jolpica';
+import { getCircuitImage } from '../services/circuitImages';
 
 export default function RaceCard({ onPress }: { onPress?: (raceId: string) => void }) {
-  const [upcomingRace, setUpcomingRace] = useState<CalendarRace>({ ...nextRace, id: 'ned', flag: '🏁', status: 'next' });
+  const [upcomingRace, setUpcomingRace] = useState<CalendarRace>({ ...nextRace, id: 'ned', flag: '🇳🇱', country: 'Holanda', status: 'next' });
   const cd = useCountdown(upcomingRace.startsAt);
 
   useEffect(() => {
@@ -24,22 +25,36 @@ export default function RaceCard({ onPress }: { onPress?: (raceId: string) => vo
   );
   return (
     <Pressable onPress={() => onPress?.(upcomingRace.id)} style={s.card}>
-      <Text style={s.cardLabel}>Próxima Corrida</Text>
-      <Text style={s.raceName}>{upcomingRace.name.toUpperCase()}</Text>
-      <Text style={s.cardLabel}>{upcomingRace.circuit}</Text>
-      <View style={s.cdRow}>{box(cd.dias, 'DIAS')}{box(cd.horas, 'HORAS')}{box(cd.min, 'MIN')}</View>
-      <Text style={s.datePill}>{upcomingRace.dates}</Text>
+      <ImageBackground
+        source={getCircuitImage(upcomingRace.name, upcomingRace.circuit, upcomingRace.country)}
+        style={s.image}
+        imageStyle={s.imageContent}
+      >
+        <View style={s.imageShade} />
+        <View style={s.content}>
+          <Text style={s.cardLabel}>PRÓXIMA CORRIDA</Text>
+          <Text style={s.raceName}>{upcomingRace.name.replace(/^GP da /, 'GP ').toUpperCase()}</Text>
+          <Text style={s.circuit}>{upcomingRace.circuit}</Text>
+          <View style={s.cdRow}>{box(cd.dias, 'DIAS')}{box(cd.horas, 'HORAS')}{box(cd.min, 'MIN')}</View>
+          <Text style={s.datePill}>{upcomingRace.dates}</Text>
+        </View>
+      </ImageBackground>
     </Pressable>
   );
 }
 
 const s = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: 18, overflow: 'hidden' },
-  cardLabel: { color: colors.textMuted, fontSize: 12 },
-  raceName: { color: colors.text, fontSize: 22, fontWeight: '800', marginVertical: 2 },
-  cdRow: { flexDirection: 'row', gap: 10, marginTop: 14, alignSelf: 'stretch' },
-  cdBox: { flex: 1, height: 56, borderRadius: radius.md, backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center' },
-  cdValue: { color: colors.text, fontSize: 20, fontWeight: '700' },
-  cdLabel: { color: colors.textMuted, fontSize: 9 },
-  datePill: { color: colors.text, fontSize: 12, marginTop: 12, alignSelf: 'flex-start', backgroundColor: colors.surfaceAlt, paddingHorizontal: 12, paddingVertical: 4, borderRadius: radius.pill },
+  card: { minHeight: 238, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' },
+  image: { flex: 1, minHeight: 238, padding: 20, justifyContent: 'space-between' },
+  imageContent: { resizeMode: 'cover' },
+  imageShade: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(5, 6, 12, 0.68)' },
+  content: { flex: 1, justifyContent: 'space-between' },
+  cardLabel: { color: colors.red, fontSize: 10, fontWeight: '800', letterSpacing: 1 },
+  raceName: { color: colors.text, fontSize: 24, lineHeight: 29, fontWeight: '900', marginTop: 6 },
+  circuit: { color: colors.textMuted, fontSize: 13, marginTop: 4 },
+  cdRow: { flexDirection: 'row', gap: 10, marginTop: 24, alignSelf: 'stretch' },
+  cdBox: { flex: 1, height: 64, borderRadius: radius.md, backgroundColor: 'rgba(24, 26, 36, 0.5)', alignItems: 'center', justifyContent: 'center' },
+  cdValue: { color: colors.text, fontSize: 24, fontWeight: '900' },
+  cdLabel: { color: colors.textMuted, fontSize: 9, fontWeight: '700', marginTop: 2 },
+  datePill: { color: colors.text, fontSize: 13, fontWeight: '700', marginTop: 18, alignSelf: 'stretch' },
 });
