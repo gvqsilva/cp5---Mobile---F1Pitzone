@@ -22,12 +22,12 @@ import {
 } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyBD6yfx_oAHhIOQ0Q8r0VAxR-sf2VavUJE',
-  authDomain: 'f1-pitzone.firebaseapp.com',
-  projectId: 'f1-pitzone',
-  storageBucket: 'f1-pitzone.firebasestorage.app',
-  messagingSenderId: '933498794590',
-  appId: '1:933498794590:web:48a4707732a01a111afacf',
+  apiKey: 'api_Key',
+  authDomain: 'auth_Domain',
+  projectId: 'project_Id',
+  storageBucket: 'storage_Bucket',
+  messagingSenderId: 'messagingSender_Id',
+  appId: 'app_Id',
 };
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
