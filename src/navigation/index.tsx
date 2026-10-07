@@ -28,13 +28,30 @@ import PerfilScreen from '../screens/perfil/PerfilScreen';
 import LigasScreen from '../screens/perfil/LigasScreen';
 import LigaDetalheScreen from '../screens/perfil/LigaDetalheScreen';
 import HistoricoPontosScreen from '../screens/perfil/HistoricoPontosScreen';
+import LojaHomeScreen from '../screens/loja/LojaHomeScreen';
+import CategoriasScreen from '../screens/loja/CategoriasScreen';
+import ProdutosScreen from '../screens/loja/ProdutosScreen';
+import ProdutoDetalheScreen from '../screens/loja/ProdutoDetalheScreen';
+import CarrinhoScreen from '../screens/loja/CarrinhoScreen';
+import FinalizarCompraScreen from '../screens/loja/FinalizarCompraScreen';
+import PagamentoScreen from '../screens/loja/PagamentoScreen';
+import ConfirmacaoScreen from '../screens/loja/ConfirmacaoScreen';
+import ConfirmadoScreen from '../screens/loja/ConfirmadoScreen';
+import EnderecosScreen from '../screens/loja/EnderecosScreen';
+import FavoritosScreen from '../screens/loja/FavoritosScreen';
+import MinhasComprasScreen from '../screens/perfil/MinhasComprasScreen';
+import { CategoriaId, FreteOpcaoId, MetodoPagamentoId } from '../services/store';
 
 export type RootStackParamList = {
   Onboarding: undefined; Login: undefined; Register: undefined; Main: undefined;
   MinhaEquipe: undefined; Pontuacao: undefined; CriarEquipe: undefined;
   Calendario: undefined; Sessoes: { raceId: string }; SessaoResultado: { sessionKey: number; sessionName: string }; Pilotos: undefined; Equipes: undefined; EquipeDetalhe: { id: string }; Noticias: undefined; PilotoDetalhe: { id: string };
   Ligas: undefined; LigaDetalhe: { id: string }; HistoricoPontos: undefined;
-  Configuracoes: undefined; Conquistas: undefined; MinhasCompras: undefined; AjudaSuporte: undefined; GerenciarAssinatura: undefined;
+  Configuracoes: undefined; Conquistas: undefined; MinhasCompras: undefined; Enderecos: undefined; AjudaSuporte: undefined; GerenciarAssinatura: undefined;
+  Categorias: undefined; Produtos: { categoriaId?: CategoriaId; busca?: string } | undefined; ProdutoDetalhe: { produtoId: string };
+  Favoritos: undefined;
+  Carrinho: undefined; FinalizarCompra: { enderecoId?: string } | undefined; Pagamento: { freteId: FreteOpcaoId };
+  Confirmacao: { freteId: FreteOpcaoId; metodoPagamentoId: MetodoPagamentoId }; Confirmado: { pedidoId: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -56,7 +73,11 @@ const ICONS: Record<keyof MainTabParamList, [keyof typeof Ionicons.glyphMap, key
   Perfil: ['person', 'person-outline'],
 };
 
-const placeholder = (title: string) => () => <PlaceholderScreen title={title} />;
+const placeholder = (title: string) => {
+  const ScreenPlaceholder = () => <PlaceholderScreen title={title} />;
+  ScreenPlaceholder.displayName = `Placeholder(${title})`;
+  return ScreenPlaceholder;
+};
 
 function MainTabs() {
   return (
@@ -74,7 +95,7 @@ function MainTabs() {
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="F1" component={F1HomeScreen} />
       <Tab.Screen name="Fantasy" component={FantasyHomeScreen} />
-      <Tab.Screen name="Loja" component={placeholder('Loja')} />
+      <Tab.Screen name="Loja" component={LojaHomeScreen} />
       <Tab.Screen name="Perfil" component={PerfilScreen} />
     </Tab.Navigator>
   );
@@ -120,9 +141,19 @@ export default function Navigation() {
         <Stack.Screen name="HistoricoPontos" component={HistoricoPontosScreen} />
         <Stack.Screen name="Configuracoes" component={placeholder('Configurações')} />
         <Stack.Screen name="Conquistas" component={placeholder('Conquistas')} />
-        <Stack.Screen name="MinhasCompras" component={placeholder('Minhas Compras')} />
+        <Stack.Screen name="MinhasCompras" component={MinhasComprasScreen} />
+        <Stack.Screen name="Enderecos" component={EnderecosScreen} />
+        <Stack.Screen name="Favoritos" component={FavoritosScreen} />
         <Stack.Screen name="AjudaSuporte" component={placeholder('Ajuda & Suporte')} />
         <Stack.Screen name="GerenciarAssinatura" component={placeholder('Gerenciar assinatura')} />
+        <Stack.Screen name="Categorias" component={CategoriasScreen} />
+        <Stack.Screen name="Produtos" component={ProdutosScreen} />
+        <Stack.Screen name="ProdutoDetalhe" component={ProdutoDetalheScreen} />
+        <Stack.Screen name="Carrinho" component={CarrinhoScreen} />
+        <Stack.Screen name="FinalizarCompra" component={FinalizarCompraScreen} />
+        <Stack.Screen name="Pagamento" component={PagamentoScreen} />
+        <Stack.Screen name="Confirmacao" component={ConfirmacaoScreen} />
+        <Stack.Screen name="Confirmado" component={ConfirmadoScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

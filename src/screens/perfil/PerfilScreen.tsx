@@ -20,6 +20,7 @@ const SETTINGS = [
   { label: 'Configurações', description: 'Preferências do aplicativo', route: 'Configuracoes', icon: 'settings-outline' as const },
   { label: 'Conquistas', description: 'Veja seus troféus', route: 'Conquistas', icon: 'ribbon-outline' as const },
   { label: 'Minhas compras', description: 'Produtos e pedidos', route: 'MinhasCompras', icon: 'bag-outline' as const },
+  { label: 'Endereços de entrega', description: 'Cadastre e escolha seus endereços', route: 'Enderecos', icon: 'location-outline' as const },
   { label: 'Ajuda e suporte', description: 'Fale com a equipe PitZone', route: 'AjudaSuporte', icon: 'help-circle-outline' as const },
   { label: 'Gerenciar assinatura', description: 'Plano atual e pagamentos', route: 'GerenciarAssinatura', icon: 'card-outline' as const },
 ];
