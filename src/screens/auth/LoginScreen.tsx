@@ -8,6 +8,7 @@ import AuthLayout from '../../components/AuthLayout';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import Checkbox from '../../components/Checkbox';
+import { firebaseErrorMessage, loginFirebaseUser } from '../../services/firebase';
 import { saveAuthSession, saveProfile } from '../../services/storage';
 
 type Social = { id: string; image?: ImageSourcePropType; icon?: keyof typeof FontAwesome5.glyphMap; color?: string };
@@ -25,14 +26,15 @@ export default function LoginScreen({ navigation }: NativeStackScreenProps<RootS
   const [erro, setErro] = useState('');
 
   const submit = async () => {
-    if (email.trim().toLowerCase() !== 'adm@gmail.com' || senha !== 'adm123') {
-      setErro('E-mail ou senha inválidos.');
-      return;
+    try {
+      const user = await loginFirebaseUser(email, senha);
+      setErro('');
+      await saveProfile({ name: user.displayName ?? user.email ?? 'Usuário', email: user.email ?? email });
+      await saveAuthSession({ email: user.email ?? email, remember: manter, createdAt: new Date().toISOString() });
+      navigation.replace('Main');
+    } catch (error) {
+      setErro(firebaseErrorMessage(error));
     }
-    setErro('');
-    await saveProfile({ name: 'Administrador', email: 'adm@gmail.com' });
-    await saveAuthSession({ email: 'adm@gmail.com', remember: manter, createdAt: new Date().toISOString() });
-    navigation.replace('Main');
   };
 
   return (

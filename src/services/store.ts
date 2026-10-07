@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getUserDocuments, saveUserDocument } from './firebase';
 
 const KEY_CART = '@pitzone/cart';
 const KEY_LAST_ORDER = '@pitzone/last-order';
@@ -279,6 +280,7 @@ export async function confirmarPedido(
   await writeJson(KEY_LAST_ORDER, pedido);
   const pedidos = (await readJson<Pedido[]>(KEY_ORDERS)) ?? [];
   await writeJson(KEY_ORDERS, [pedido, ...pedidos]);
+  await saveUserDocument('orders', pedido as unknown as Record<string, unknown>, pedido.id);
   await limparCarrinho();
   return pedido;
 }
@@ -288,6 +290,8 @@ export async function getUltimoPedido() {
 }
 
 export async function getPedidos() {
+  const cloudPedidos = await getUserDocuments<Pedido>('orders');
+  if (cloudPedidos.length) return cloudPedidos.sort((a, b) => b.data.localeCompare(a.data));
   const pedidos = await readJson<Pedido[]>(KEY_ORDERS);
   if (pedidos?.length) return pedidos;
   const ultimo = await getUltimoPedido();

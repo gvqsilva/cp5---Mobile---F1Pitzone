@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getUserDocuments, saveUserDocument } from './firebase';
 import { getDrivers, getTeams, TEAM_PRINCIPALS } from './jolpica';
 import { getOpenF1Drivers } from './openf1';
 import { getLatestCompletedFantasyWeekend } from './openf1';
@@ -162,6 +163,12 @@ export const emptyFantasyTeam: FantasyTeam = {
 };
 
 export async function getFantasyTeam(): Promise<FantasyTeam> {
+  const cloudTeams = await getUserDocuments<FantasyTeam>('fantasy');
+  if (cloudTeams.length) {
+    const team = cloudTeams[0];
+    await AsyncStorage.setItem(KEY, JSON.stringify(team));
+    return team;
+  }
   const stored = await AsyncStorage.getItem(KEY);
   if (!stored) return emptyFantasyTeam;
 
@@ -200,6 +207,7 @@ export async function getFantasyTeam(): Promise<FantasyTeam> {
 
 export async function saveFantasyTeam(team: FantasyTeam) {
   await AsyncStorage.setItem(KEY, JSON.stringify(team));
+  await saveUserDocument('fantasy', team as unknown as Record<string, unknown>, 'current');
 }
 
 export async function clearFantasyTeam() {

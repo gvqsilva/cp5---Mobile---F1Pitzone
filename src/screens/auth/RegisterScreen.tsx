@@ -8,6 +8,7 @@ import Input from '../../components/Input';
 import Button from '../../components/Button';
 import Checkbox from '../../components/Checkbox';
 import { saveAuthSession, saveProfile } from '../../services/storage';
+import { firebaseErrorMessage, registerFirebaseUser } from '../../services/firebase';
 
 export default function RegisterScreen({ navigation }: NativeStackScreenProps<RootStackParamList, 'Register'>) {
   const [form, setForm] = useState({ nome: '', email: '', senha: '', confirma: '' });
@@ -19,10 +20,15 @@ export default function RegisterScreen({ navigation }: NativeStackScreenProps<Ro
     if (!form.nome || !form.email || !form.senha) return setErro('Preencha nome, e-mail e senha.');
     if (form.senha !== form.confirma) return setErro('As senhas não coincidem.');
     if (!aceito) return setErro('Aceite os termos e condições para continuar.');
-    setErro('');
-    await saveProfile({ name: form.nome, email: form.email });
-    await saveAuthSession({ email: form.email, remember: true, createdAt: new Date().toISOString() });
-    navigation.replace('Main');
+    try {
+      const user = await registerFirebaseUser(form.nome, form.email, form.senha);
+      setErro('');
+      await saveProfile({ name: user.displayName ?? form.nome, email: user.email ?? form.email });
+      await saveAuthSession({ email: user.email ?? form.email, remember: true, createdAt: new Date().toISOString() });
+      navigation.replace('Main');
+    } catch (error) {
+      setErro(firebaseErrorMessage(error));
+    }
   };
 
   return (
