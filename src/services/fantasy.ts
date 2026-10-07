@@ -8,7 +8,14 @@ import { CategoriaFantasy, FAIXAS, precoBasePorClassificacao } from './fantasySc
 
 const KEY = '@pitzone/fantasy-team';
 
-export type FantasyPick = { name: string; pts: number; price: number; headshotUrl?: string; logoUrl?: string; logoAsset?: number };
+export type FantasyPick = {
+  name: string;
+  pts: number;
+  price: number;
+  headshotUrl?: string;
+  logoUrl?: string;
+  logoAsset?: number;
+};
 
 export function getTeamLogoUrl(name: string) {
   const slug = normalizeName(name).replace(/ /g, '');
@@ -31,10 +38,13 @@ const TEAM_LOGOS: Record<string, number> = {
 
 export function getTeamLogoAsset(name: string) {
   const normalized = normalizeName(name).replace(/[^a-z0-9]/g, '');
-  const key = normalized.includes('astonmartin') ? 'astonmartin'
-    : normalized.includes('redbull') ? 'redbull'
-      : normalized.includes('visacashapprb') || normalized === 'rb' || normalized.includes('racingbulls') || normalized.includes('vcarb') ? 'visa'
-      : normalized;
+  const key = normalized.includes('astonmartin')
+    ? 'astonmartin'
+    : normalized.includes('redbull')
+    ? 'redbull'
+    : normalized.includes('visacashapprb') || normalized === 'rb' || normalized.includes('racingbulls') || normalized.includes('vcarb')
+    ? 'visa'
+    : normalized;
   return TEAM_LOGOS[key];
 }
 
@@ -60,9 +70,11 @@ function findHeadshot(name: string, profiles: Awaited<ReturnType<typeof getOpenF
   return profiles.find((profile) => {
     const normalizedProfile = normalizeName(profile.name);
     const profileParts = normalizedProfile.split(' ');
-    return normalizedProfile === normalizedName
-      || (nameParts.length > 0 && profileParts[profileParts.length - 1] === nameParts[nameParts.length - 1])
-      || nameParts.some((part) => part.length > 3 && profileParts.includes(part));
+    return (
+      normalizedProfile === normalizedName ||
+      (nameParts.length > 0 && profileParts[profileParts.length - 1] === nameParts[nameParts.length - 1]) ||
+      nameParts.some((part) => part.length > 3 && profileParts.includes(part))
+    );
   })?.headshotUrl;
 }
 
@@ -205,9 +217,27 @@ export async function getFantasyTeam(): Promise<FantasyTeam> {
   }
 }
 
+function removeUndefinedFields<T>(obj: T): T {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(removeUndefinedFields) as unknown as T;
+  }
+
+  return Object.entries(obj).reduce((acc, [key, value]) => {
+    if (value !== undefined) {
+      acc[key as keyof T] = removeUndefinedFields(value);
+    }
+    return acc;
+  }, {} as T);
+}
+
 export async function saveFantasyTeam(team: FantasyTeam) {
   await AsyncStorage.setItem(KEY, JSON.stringify(team));
-  await saveUserDocument('fantasy', team as unknown as Record<string, unknown>, 'current');
+  const cleanTeam = removeUndefinedFields(team);
+  await saveUserDocument('fantasy', cleanTeam as unknown as Record<string, unknown>, 'current');
 }
 
 export async function clearFantasyTeam() {

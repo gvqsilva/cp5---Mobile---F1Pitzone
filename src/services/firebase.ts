@@ -3,9 +3,11 @@ import { FirebaseError, getApp, getApps, initializeApp } from 'firebase/app';
 import {
   Auth,
   Persistence,
+  User,
   createUserWithEmailAndPassword,
   getAuth,
   initializeAuth,
+  onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
@@ -40,7 +42,7 @@ const reactNativePersistence = {
   },
   _get: async <T>(key: string): Promise<T | null> => {
     const value = await AsyncStorage.getItem(key);
-    return value ? JSON.parse(value) as T : null;
+    return value ? (JSON.parse(value) as T) : null;
   },
   _remove: async (key: string) => {
     await AsyncStorage.removeItem(key);
@@ -69,8 +71,25 @@ export function firebaseErrorMessage(error: unknown) {
     'auth/email-already-in-use': 'Este e-mail já está cadastrado.',
     'auth/weak-password': 'A senha precisa ter pelo menos 6 caracteres.',
     'auth/network-request-failed': 'Sem conexão com a internet.',
+    'permission-denied': 'Permissão negada no banco de dados. Verifique as Regras do Firestore.',
   };
   return messages[error.code] ?? 'Não foi possível concluir a operação. Tente novamente.';
+}
+
+/**
+ * Aguarda a restauração do estado de autenticação antes de executar operações
+ */
+export function getCurrentUser(): Promise<User | null> {
+  return new Promise((resolve) => {
+    if (auth.currentUser) {
+      resolve(auth.currentUser);
+      return;
+    }
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe();
+      resolve(user);
+    });
+  });
 }
 
 export async function registerFirebaseUser(name: string, email: string, password: string) {
@@ -100,17 +119,26 @@ export async function getFirebaseProfile(uid: string) {
 }
 
 export async function saveUserDocument(collectionName: string, data: Record<string, unknown>, id?: string) {
-  const user = auth.currentUser;
-  if (!user) return;
+  const user = await getCurrentUser();
+  if (!user) {
+    throw new Error('Usuário não autenticado no Firebase.');
+  }
+
   const reference = id
     ? doc(firestore, 'users', user.uid, collectionName, id)
     : doc(collection(firestore, 'users', user.uid, collectionName));
-  await setDoc(reference, { ...data, userId: user.uid, updatedAt: serverTimestamp() }, { merge: true });
+
+  await setDoc(
+    reference,
+    { ...data, userId: user.uid, updatedAt: serverTimestamp() },
+    { merge: true }
+  );
 }
 
 export async function getUserDocuments<T>(collectionName: string) {
-  const user = auth.currentUser;
+  const user = await getCurrentUser();
   if (!user) return [];
+
   const snapshot = await getDocs(collection(firestore, 'users', user.uid, collectionName));
   return snapshot.docs.map((item) => item.data() as T);
 }
